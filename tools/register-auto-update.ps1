@@ -42,7 +42,7 @@ $triggers = @(
 $principal = New-ScheduledTaskPrincipal -UserId $currentUser -LogonType Interactive -RunLevel Limited
 $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 10)
 
-Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $triggers -Principal $principal -Settings $settings -Description '自动检查并安装横屏影视提示词 Agent 2.0 更新。' -Force | Out-Null
+Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $triggers -Principal $principal -Settings $settings -Description '自动检查并安装上古影视工作流-FQLLG 更新。' -Force | Out-Null
 
 Write-Host "自动更新已启用：Windows 登录时和每天 12:00 检查。"
 Write-Host "日志：$stateRoot\update.log"

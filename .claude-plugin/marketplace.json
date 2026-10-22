@@ -11,7 +11,7 @@
       "name": "shanggu-film-pipeline-fqllg",
       "source": "./plugins/shanggu-film-pipeline-fqllg",
       "description": "上古影视工作流-FQLLG：横屏真人短剧的 Seedance 2.5 视频制作流程。由总调度按场推进：按需做灰模预演（Blender）、写生成提示词（内置《风起玲珑骨》剧本资料）、在玄上画布生成，用户明确要求时在已有视频上局部修改或换机位重拍；记进度表和交接文件。",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "category": "Creative Tools",
       "author": {
         "name": "pencil102411-cell"

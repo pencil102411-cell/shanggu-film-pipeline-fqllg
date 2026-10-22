@@ -22,9 +22,10 @@
 Claude Code 装好插件后，在普通 PowerShell 窗口里运行。它会把依赖提前装到插件的数据目录（第一次要下载约 50MB，一两分钟），画布开着时显示「已连接」：
 
 ```powershell
-$root = (Get-ChildItem "$env:USERPROFILE\.claude\plugins\cache\shanggu-film\shanggu-film-pipeline-fqllg" -Directory | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName
+$root = (Get-Content "$env:USERPROFILE\.claude\plugins\installed_plugins.json" -Raw | ConvertFrom-Json).plugins.'shanggu-film-pipeline-fqllg@shanggu-film'[0].installPath
 $env:UV_PROJECT_ENVIRONMENT = "$env:USERPROFILE\.claude\plugins\data\shanggu-film-pipeline-fqllg-shanggu-film\venv"
 powershell -NoProfile -ExecutionPolicy Bypass -File "$root\canvas-mcp\scripts\start-mcp.ps1" --check
+Remove-Item Env:UV_PROJECT_ENVIRONMENT
 ```
 
 画布没开会提示先打开画布，这也说明画布工具本身装好了。Codex 的登记和自检见仓库根目录 [README](../../../README.md)「安装 → Codex」：Codex 里登记的是 `%LOCALAPPDATA%\shanggu-film-pipeline-fqllg\start-canvas.ps1` 这个启动小脚本，它再去插件缓存里找最新版的画布工具；依赖装在同一个文件夹的 `canvas-venv-<版本号>` 里。

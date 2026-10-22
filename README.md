@@ -29,29 +29,62 @@
 
 > 请帮我安装「上古影视工作流-FQLLG」插件：按 https://github.com/pencil102411-cell/shanggu-film-pipeline-fqllg 这个仓库 README 里「安装」一节操作。装之前先按「装之前：撤掉旧版本」检查，有旧版本的先列出来问我。装完运行自检，把结果告诉我。
 
+下面的命令都在普通 PowerShell 窗口里运行（不用管理员）。
+
+### 先准备
+
+- **画布**：装好并打开玄上无限画布（或玄上内部版），登录自己的账号；电脑上要有 uv（画布工具运行要用的小工具）。没有 uv 时运行 `winget install --id=astral-sh.uv -e`。
+- **灰模**（用到时才要）：Blender 4.2 及以上、Python 3.9 及以上、Pillow、FFmpeg。第一次用时运行灰模的 `setup`，见 [安装与MCP.md](plugins/shanggu-film-pipeline-fqllg/skills/blender-greybox-previs/references/安装与MCP.md)。
+
 ### 装之前：撤掉旧版本
 
-以前单独装过这几样的，要先撤掉，否则同一句话会叫出两个同名 skill，画布工具也会启动两份：
+以前单独装过旧版的，要先撤掉，否则同一句话会叫出两个同名 skill，画布工具也会启动两份。没装过的跳过这一节。建议都先挪到一个备份文件夹，不要直接删。
 
-- Claude Code：插件 `horizontal-cinematic-prompt-agent-v2@hengping-film-tools`、`xuanshang-canvas@xuanshang-tools`；`~/.claude/skills/` 下的 `blender-greybox-previs`、`video-local-edit`、`video-rephotography`。
-- Codex：插件 `horizontal-cinematic-prompt-agent-v2@hengping-film-tools`；`~/.codex/skills/` 下的 `blender-greybox-previs`、`video-rephotography`、`horizontal-cinematic-prompt-agent-v2`；`~/.agents/skills/xuanshang-canvas`；`~/.codex/config.toml` 里旧的 `[mcp_servers.xuanshang-canvas]`（换成下面新的登记）。
+- **Claude Code**：
+  - 插件 `horizontal-cinematic-prompt-agent-v2@hengping-film-tools`、`xuanshang-canvas@xuanshang-tools`，以及插件市场 `hengping-film-tools`、`xuanshang-tools`（用 `claude plugin uninstall …`、`claude plugin marketplace remove …`）。
+  - `~/.claude/skills/` 下的 `blender-greybox-previs`、`video-local-edit`、`video-rephotography`。
+- **Codex**：
+  - Windows 定时任务「Codex - 横屏影视提示词 Agent 2.0 自动更新」，以及 `%LOCALAPPDATA%\Codex\horizontal-cinematic-prompt-agent-v2\`。**这个不撤，旧插件会被自动装回来。**
+  - 插件 `horizontal-cinematic-prompt-agent-v2@hengping-film-tools` 和插件市场 `hengping-film-tools`。
+  - `~/.codex/skills/` 下的 `blender-greybox-previs`、`video-rephotography`、`video-local-edit`、`horizontal-cinematic-prompt-agent-v2`。
+  - `~/.agents/plugins/marketplace.json` 里的 `horizontal-cinematic-prompt-agent-v2` 条目，和 `~/plugins/horizontal-cinematic-prompt-agent-v2`。
+  - `~/.agents/skills/xuanshang-canvas`。
+  - `~/.codex/config.toml` 里旧的 `[mcp_servers.xuanshang-canvas]`（换成下面新的登记），和它指向的 `%LOCALAPPDATA%\CodexTools\xuanshang-canvas\`。
 
-建议先挪到一个备份文件夹，不要直接删。分镜 skill（`horizontal-storyboard-design`）不在本插件里，不用撤。
+Codex 的定时任务、旧插件、旧市场可以用这几行撤（第一行找到 Codex 的命令行程序；第二行删掉旧定时任务，没有就什么也不做；后两行卸掉旧插件、删掉旧市场，没有会提示找不到，不影响）：
+
+```powershell
+$codex = (Get-ChildItem "$env:LOCALAPPDATA\OpenAI\Codex\bin" -Filter codex.exe -Recurse | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName
+Unregister-ScheduledTask -TaskName 'Codex - 横屏影视提示词 Agent 2.0 自动更新' -Confirm:$false -ErrorAction SilentlyContinue
+& $codex plugin remove horizontal-cinematic-prompt-agent-v2@hengping-film-tools
+& $codex plugin marketplace remove hengping-film-tools
+```
+
+分镜 skill（`horizontal-storyboard-design`）不在本插件里，不用撤。
 
 ### Claude Code
 
-在普通 PowerShell 窗口里运行（第一条登记插件市场，第二条安装插件）：
+第一条登记插件市场，第二条安装插件：
 
 ```
 claude plugin marketplace add pencil102411-cell/shanggu-film-pipeline-fqllg
 claude plugin install shanggu-film-pipeline-fqllg@shanggu-film
 ```
 
-装好后新开一个会话。之后直接说需求就会用到对应的 skill；也可以用全名调用，例如 `/shanggu-film-pipeline-fqllg:blender-greybox-previs`。画布工具随插件一起装，第一次启动会下载约 50MB 依赖；想提前装好，按 [canvas-mcp/README.md](plugins/shanggu-film-pipeline-fqllg/canvas-mcp/README.md)「二、自检」运行一次。
+画布工具随插件一起装。**建议装完先自检一次**，把约 50MB 的依赖提前装好，免得第一次开会话时画布工具启动超时（画布开着时显示「已连接」）：
+
+```powershell
+$root = (Get-Content "$env:USERPROFILE\.claude\plugins\installed_plugins.json" -Raw | ConvertFrom-Json).plugins.'shanggu-film-pipeline-fqllg@shanggu-film'[0].installPath
+$env:UV_PROJECT_ENVIRONMENT = "$env:USERPROFILE\.claude\plugins\data\shanggu-film-pipeline-fqllg-shanggu-film\venv"
+powershell -NoProfile -ExecutionPolicy Bypass -File "$root\canvas-mcp\scripts\start-mcp.ps1" --check
+Remove-Item Env:UV_PROJECT_ENVIRONMENT
+```
+
+然后新开一个会话。之后直接说需求就会用到对应的 skill；也可以用全名调用，例如 `/shanggu-film-pipeline-fqllg:blender-greybox-previs`。
 
 ### Codex
 
-在普通 PowerShell 窗口里运行。Codex 的命令行程序藏在 `%LOCALAPPDATA%\OpenAI\Codex\bin\<一串字母>\codex.exe`，第一行先找到它：
+Codex 的命令行程序藏在 `%LOCALAPPDATA%\OpenAI\Codex\bin\<一串字母>\codex.exe`，第一行先找到它：
 
 ```powershell
 $codex = (Get-ChildItem "$env:LOCALAPPDATA\OpenAI\Codex\bin" -Filter codex.exe -Recurse | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName
@@ -59,7 +92,7 @@ $codex = (Get-ChildItem "$env:LOCALAPPDATA\OpenAI\Codex\bin" -Filter codex.exe -
 & $codex plugin add shanggu-film-pipeline-fqllg@shanggu-film
 ```
 
-画布工具在 Codex 里要另外登记（插件里自带的写法没法把等待时间调长，第一次启动装依赖、上传大视频都会超时）：
+画布工具在 Codex 里要另外登记：第一次启动要装依赖、上传大视频要等认证，都比 Codex 默认的等待时间长，而 Codex 官方文档没写插件里怎么把等待时间调长，所以改在配置文件里登记。
 
 1. 放一个启动小脚本。它每次去插件缓存里找最新版的画布工具，插件更新后不用改配置：
 
@@ -68,7 +101,7 @@ $codex = (Get-ChildItem "$env:LOCALAPPDATA\OpenAI\Codex\bin" -Filter codex.exe -
    Copy-Item "$env:USERPROFILE\.codex\.tmp\marketplaces\shanggu-film\tools\codex-canvas-launcher.ps1" "$dst\start-canvas.ps1" -Force
    ```
 
-2. 在 `%USERPROFILE%\.codex\config.toml` 末尾加上这段（`你的用户名` 换成实际的，用正斜杠）。已经有 `[mcp_servers.xuanshang-canvas]` 的，换掉旧的那段：
+2. 在 `%USERPROFILE%\.codex\config.toml` 末尾加上下面这段。已经有 `[mcp_servers.xuanshang-canvas]` 的，换掉旧的那段。`args` 里的路径用这一行打印出来，原样替换：`"$env:LOCALAPPDATA\shanggu-film-pipeline-fqllg\start-canvas.ps1" -replace '\\','/'`
 
    ```toml
    [mcp_servers.xuanshang-canvas]
@@ -78,18 +111,13 @@ $codex = (Get-ChildItem "$env:LOCALAPPDATA\OpenAI\Codex\bin" -Filter codex.exe -
    tool_timeout_sec = 300
    ```
 
-3. 自检，顺便把依赖提前装好（画布开着时显示「已连接」）：
+3. 自检，顺便把依赖提前装好（画布开着时显示「已连接」）。如果同一个窗口刚跑过 Claude Code 的自检，先运行 `Remove-Item Env:UV_PROJECT_ENVIRONMENT -ErrorAction SilentlyContinue`：
 
    ```powershell
    powershell -NoProfile -ExecutionPolicy Bypass -File "$env:LOCALAPPDATA\shanggu-film-pipeline-fqllg\start-canvas.ps1" --check
    ```
 
 4. 重启 Codex。在 Codex 里用 `$film-pipeline`、`$horizontal-cinematic-prompt-agent-v2` 这样的写法点名调用 skill。
-
-### 用到这些功能时，电脑上还要有
-
-- **画布**：玄上无限画布（开着并登录），以及 uv（画布工具运行要用的小工具）。没有 uv 时在 PowerShell 里运行 `winget install --id=astral-sh.uv -e`。
-- **灰模**：Blender 4.2 及以上、Python 3.9 及以上、Pillow、FFmpeg。第一次用时运行灰模的 `setup`，见 [安装与MCP.md](plugins/shanggu-film-pipeline-fqllg/skills/blender-greybox-previs/references/安装与MCP.md)。
 
 ## 更新
 
@@ -107,7 +135,15 @@ Codex（`$codex` 的找法同上）：
 & $codex plugin add shanggu-film-pipeline-fqllg@shanggu-film
 ```
 
-也可以运行 `tools/update-plugin.ps1`，它会先比对版本，有新版才装。想让 Codex 自动更新，运行 `tools/register-auto-update.ps1` 注册一个 Windows 定时任务（每次登录和每天中午 12 点各检查一次）；不想要了加 `-Remove` 再运行一次即可撤销。更新后新开会话才生效。
+更新后新开会话才生效。CHANGELOG 里写了「启动小脚本有改动」时，再做一次「安装 → Codex」第 1 步。
+
+Codex 也可以用仓库里的脚本更新，它会先比对版本，有新版才装：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\.codex\.tmp\marketplaces\shanggu-film\tools\update-plugin.ps1"
+```
+
+想让 Codex 自动更新，把上面的 `update-plugin.ps1` 换成 `register-auto-update.ps1` 运行一次，会注册一个 Windows 定时任务（每次登录和每天中午 12 点各检查一次）；不想要了，同一条命令末尾加 ` -Remove` 再运行一次即可撤销。
 
 ## 仓库结构
 
