@@ -1,0 +1,12 @@
+# 各 skill 和 canvas-mcp 文件夹里还有各自的 .gitignore，只管自己那个文件夹。
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.tmp
+*.log
+.codex-marketplace-install.json
+.idea/
+.vscode/
+.venv/
+__pycache__/
+*.pyc

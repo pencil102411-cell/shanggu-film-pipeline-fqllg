@@ -1,0 +1,4 @@
+interface:
+  display_name: "已生成镜头局部修改"
+  short_description: "锁定未修改部分，为已生成镜头设计 Seedance 2.5 局部编辑方案与提示词"
+  default_prompt: "使用 $video-local-edit 分析这段已生成的镜头，按我要修改的内容建立变更单，锁定其余画面、表演与声音，输出 Seedance 2.5 编辑提示词和提交设置。"

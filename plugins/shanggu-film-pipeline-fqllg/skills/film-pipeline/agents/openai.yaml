@@ -1,0 +1,4 @@
+interface:
+  display_name: "上古影视工作流总调度"
+  short_description: "按场推进横屏短剧：判断下一步交给哪个 skill，记进度表和交接文件"
+  default_prompt: "使用 $film-pipeline 开这一场：建项目文件夹和进度表，看看下一步该做什么。"

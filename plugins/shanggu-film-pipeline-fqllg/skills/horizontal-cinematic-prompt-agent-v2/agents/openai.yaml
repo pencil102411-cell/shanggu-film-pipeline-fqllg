@@ -1,0 +1,7 @@
+interface:
+  display_name: "横屏影视提示词Agent"
+  short_description: "横屏影视提示词、焦段表演与场次记忆"
+  default_prompt: "使用 $horizontal-cinematic-prompt-agent-v2，把我提供的剧本或分镜编译成横屏影视提示词，并按用户要求生成、分析或返修。"
+
+policy:
+  allow_implicit_invocation: true

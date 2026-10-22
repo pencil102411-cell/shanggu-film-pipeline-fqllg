@@ -1,0 +1,20 @@
+{
+  "name": "shanggu-film",
+  "interface": {
+    "displayName": "上古影视工具"
+  },
+  "plugins": [
+    {
+      "name": "shanggu-film-pipeline-fqllg",
+      "source": {
+        "source": "local",
+        "path": "./plugins/shanggu-film-pipeline-fqllg"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Creative Tools"
+    }
+  ]
+}

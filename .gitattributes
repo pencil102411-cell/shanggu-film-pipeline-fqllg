@@ -1,0 +1,20 @@
+# 规定每类文件用哪种换行。剧本正文（.txt）和索引（.jsonl）必须保持 LF，
+# 否则装到 Windows 电脑后文件指纹对不上，剧本校验会报全部被改动。
+*.pdf binary
+*.md text eol=lf
+*.json text eol=lf
+*.jsonl text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.ps1 text eol=crlf
+*.txt text eol=lf
+*.py text eol=lf
+*.toml text eol=lf
+*.lock text eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.mp4 binary
+*.mov binary
+*.blend binary

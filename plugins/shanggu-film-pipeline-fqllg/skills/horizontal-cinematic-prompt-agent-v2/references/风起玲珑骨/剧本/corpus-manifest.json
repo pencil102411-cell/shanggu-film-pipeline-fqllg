@@ -1,0 +1,463 @@
+{
+  "project": "风起玲珑骨",
+  "corpus_role": "evidence_only",
+  "authority": "copied source PDFs; searchable text is a mechanical extraction",
+  "episode_coverage": [
+    1,
+    24
+  ],
+  "episode_count": 24,
+  "source_pdf_count": 4,
+  "source_page_count": 281,
+  "scene_count": 451,
+  "text_extractor": "pypdf 6.10.0",
+  "sources": [
+    {
+      "file": "《风起玲珑骨》第1-5集【0628 定稿V2】TO AI组(1).pdf",
+      "bytes": 2998709,
+      "sha256": "14FCF922C641FB847F8E2BCD7508F85015F2FE9CB8897A6C227C54B85548DB53",
+      "pages": 64,
+      "episode_starts": [
+        {
+          "episode": 1,
+          "page": 1
+        },
+        {
+          "episode": 2,
+          "page": 14
+        },
+        {
+          "episode": 3,
+          "page": 27
+        },
+        {
+          "episode": 4,
+          "page": 36
+        },
+        {
+          "episode": 5,
+          "page": 51
+        }
+      ]
+    },
+    {
+      "file": "《风起玲珑骨》第11-15集【0705 定稿版 TO AI组】(1).pdf",
+      "bytes": 2350508,
+      "sha256": "F796ECACFDC8E28DFDEDE1436DE29D5D1083ABD695A670DDD7815ECA83BD08DC",
+      "pages": 56,
+      "episode_starts": [
+        {
+          "episode": 11,
+          "page": 1
+        },
+        {
+          "episode": 12,
+          "page": 15
+        },
+        {
+          "episode": 13,
+          "page": 24
+        },
+        {
+          "episode": 14,
+          "page": 36
+        },
+        {
+          "episode": 15,
+          "page": 47
+        }
+      ]
+    },
+    {
+      "file": "《风起玲珑骨》第16-24集【0705 定稿版 TO AI组】(1).pdf",
+      "bytes": 4185480,
+      "sha256": "7C2A33B7AE19F30EC2C6B976D1EA392793623FD85BE571AF6B743CFCBD2508EE",
+      "pages": 103,
+      "episode_starts": [
+        {
+          "episode": 16,
+          "page": 1
+        },
+        {
+          "episode": 17,
+          "page": 13
+        },
+        {
+          "episode": 18,
+          "page": 27
+        },
+        {
+          "episode": 19,
+          "page": 38
+        },
+        {
+          "episode": 20,
+          "page": 48
+        },
+        {
+          "episode": 21,
+          "page": 56
+        },
+        {
+          "episode": 22,
+          "page": 69
+        },
+        {
+          "episode": 23,
+          "page": 80
+        },
+        {
+          "episode": 24,
+          "page": 91
+        }
+      ]
+    },
+    {
+      "file": "《风起玲珑骨》第6-10集【0628 定稿】TO AI组(1).pdf",
+      "bytes": 3395702,
+      "sha256": "0FB1810236E8D68035495489B9171217B5E41FB247D9F869A21A109624D07C49",
+      "pages": 58,
+      "episode_starts": [
+        {
+          "episode": 6,
+          "page": 1
+        },
+        {
+          "episode": 7,
+          "page": 11
+        },
+        {
+          "episode": 8,
+          "page": 26
+        },
+        {
+          "episode": 9,
+          "page": 36
+        },
+        {
+          "episode": 10,
+          "page": 47
+        }
+      ]
+    }
+  ],
+  "episodes": [
+    {
+      "episode": 1,
+      "file": "episode-01.txt",
+      "sha256": "D7F5511CCEE3F86E672FA48208B6CA67779AFBEF43FD865C7474E9F38C693C4D",
+      "chars": 11491,
+      "lines": 506,
+      "source_pdf": "《风起玲珑骨》第1-5集【0628 定稿V2】TO AI组(1).pdf",
+      "source_pdf_pages": [
+        1,
+        13
+      ],
+      "scene_count": 18
+    },
+    {
+      "episode": 2,
+      "file": "episode-02.txt",
+      "sha256": "13602751F8F12E6E2452E86F5ECB7399A44CFC54C894BC24C2394DB6A8387D27",
+      "chars": 10715,
+      "lines": 458,
+      "source_pdf": "《风起玲珑骨》第1-5集【0628 定稿V2】TO AI组(1).pdf",
+      "source_pdf_pages": [
+        14,
+        26
+      ],
+      "scene_count": 19
+    },
+    {
+      "episode": 3,
+      "file": "episode-03.txt",
+      "sha256": "D910C3923895C4228CB2F7E84FA9582A53159DA3D767B0B080C39FBEEA72EB34",
+      "chars": 8070,
+      "lines": 351,
+      "source_pdf": "《风起玲珑骨》第1-5集【0628 定稿V2】TO AI组(1).pdf",
+      "source_pdf_pages": [
+        27,
+        35
+      ],
+      "scene_count": 15
+    },
+    {
+      "episode": 4,
+      "file": "episode-04.txt",
+      "sha256": "0987193D0F71B10547C157D9FBCD303010A00F444EDDFC2DB10DEBC7F98EFDC2",
+      "chars": 12078,
+      "lines": 531,
+      "source_pdf": "《风起玲珑骨》第1-5集【0628 定稿V2】TO AI组(1).pdf",
+      "source_pdf_pages": [
+        36,
+        50
+      ],
+      "scene_count": 14
+    },
+    {
+      "episode": 5,
+      "file": "episode-05.txt",
+      "sha256": "DAFC86600ED519AD547B586649AB2599D6A98A94C667EFE5B91E3F3EBD6953A0",
+      "chars": 10804,
+      "lines": 477,
+      "source_pdf": "《风起玲珑骨》第1-5集【0628 定稿V2】TO AI组(1).pdf",
+      "source_pdf_pages": [
+        51,
+        64
+      ],
+      "scene_count": 18
+    },
+    {
+      "episode": 6,
+      "file": "episode-06.txt",
+      "sha256": "3E5B363FE95C584FCB7CBE82447FA0F422BCABC98A315E1D31CA45DAD695CDBE",
+      "chars": 7866,
+      "lines": 361,
+      "source_pdf": "《风起玲珑骨》第6-10集【0628 定稿】TO AI组(1).pdf",
+      "source_pdf_pages": [
+        1,
+        10
+      ],
+      "scene_count": 10
+    },
+    {
+      "episode": 7,
+      "file": "episode-07.txt",
+      "sha256": "D3AA78098564EC123F093BC379EEC3667159CAD945C93C41B3340654EDF87D91",
+      "chars": 11457,
+      "lines": 537,
+      "source_pdf": "《风起玲珑骨》第6-10集【0628 定稿】TO AI组(1).pdf",
+      "source_pdf_pages": [
+        11,
+        25
+      ],
+      "scene_count": 23
+    },
+    {
+      "episode": 8,
+      "file": "episode-08.txt",
+      "sha256": "804E910EE5F01A5097A09B5E1306AE33D54BC7554953A59E0A7450A1E17C17D3",
+      "chars": 7650,
+      "lines": 363,
+      "source_pdf": "《风起玲珑骨》第6-10集【0628 定稿】TO AI组(1).pdf",
+      "source_pdf_pages": [
+        26,
+        35
+      ],
+      "scene_count": 13
+    },
+    {
+      "episode": 9,
+      "file": "episode-09.txt",
+      "sha256": "D4CC3312BAD81FAECB8517DE3EC3E7D21BDB91EE9CE63CD8A07A4FC7EE9A1F5F",
+      "chars": 8824,
+      "lines": 413,
+      "source_pdf": "《风起玲珑骨》第6-10集【0628 定稿】TO AI组(1).pdf",
+      "source_pdf_pages": [
+        36,
+        46
+      ],
+      "scene_count": 15
+    },
+    {
+      "episode": 10,
+      "file": "episode-10.txt",
+      "sha256": "192DED07C9C6F68E4FC027375F899CD83E03A6C6A1F350D94FBDCE23CAD45E06",
+      "chars": 9161,
+      "lines": 428,
+      "source_pdf": "《风起玲珑骨》第6-10集【0628 定稿】TO AI组(1).pdf",
+      "source_pdf_pages": [
+        47,
+        58
+      ],
+      "scene_count": 16
+    },
+    {
+      "episode": 11,
+      "file": "episode-11.txt",
+      "sha256": "499BA7BBE040DB485AF6FA2A5F1C430C9A358AD410D73E3B1A00C7E77B3B8D3A",
+      "chars": 10590,
+      "lines": 504,
+      "source_pdf": "《风起玲珑骨》第11-15集【0705 定稿版 TO AI组】(1).pdf",
+      "source_pdf_pages": [
+        1,
+        14
+      ],
+      "scene_count": 20
+    },
+    {
+      "episode": 12,
+      "file": "episode-12.txt",
+      "sha256": "9F82D4B93804EB786CC00F5970045B984890E829D9794C8D3F204EA529F11FE7",
+      "chars": 6264,
+      "lines": 310,
+      "source_pdf": "《风起玲珑骨》第11-15集【0705 定稿版 TO AI组】(1).pdf",
+      "source_pdf_pages": [
+        15,
+        23
+      ],
+      "scene_count": 14
+    },
+    {
+      "episode": 13,
+      "file": "episode-13.txt",
+      "sha256": "9F53A25064317F50D27576CB6C14EDF5D9569C4DA2D230C9B0D8A61D95900B3E",
+      "chars": 9407,
+      "lines": 437,
+      "source_pdf": "《风起玲珑骨》第11-15集【0705 定稿版 TO AI组】(1).pdf",
+      "source_pdf_pages": [
+        24,
+        35
+      ],
+      "scene_count": 21
+    },
+    {
+      "episode": 14,
+      "file": "episode-14.txt",
+      "sha256": "4AEB5E38143597813B998639C28D59C060C529AD89BEEB0C0E63CDD815940485",
+      "chars": 7872,
+      "lines": 375,
+      "source_pdf": "《风起玲珑骨》第11-15集【0705 定稿版 TO AI组】(1).pdf",
+      "source_pdf_pages": [
+        36,
+        46
+      ],
+      "scene_count": 27
+    },
+    {
+      "episode": 15,
+      "file": "episode-15.txt",
+      "sha256": "AB93441A1A39FE63578AF56D886046D31809756BF5F6F10E1A50852AA44CDBBC",
+      "chars": 7509,
+      "lines": 351,
+      "source_pdf": "《风起玲珑骨》第11-15集【0705 定稿版 TO AI组】(1).pdf",
+      "source_pdf_pages": [
+        47,
+        56
+      ],
+      "scene_count": 18
+    },
+    {
+      "episode": 16,
+      "file": "episode-16.txt",
+      "sha256": "5747DE7E185E186A113EF4201E770076F01CE7AB14E8476549AF0276BA15914E",
+      "chars": 8677,
+      "lines": 411,
+      "source_pdf": "《风起玲珑骨》第16-24集【0705 定稿版 TO AI组】(1).pdf",
+      "source_pdf_pages": [
+        1,
+        12
+      ],
+      "scene_count": 27
+    },
+    {
+      "episode": 17,
+      "file": "episode-17.txt",
+      "sha256": "1B93A004C1E0F67B5DFDD79F8B5972224C9C7140B2EA473FDC0CD9F888A54B34",
+      "chars": 11215,
+      "lines": 505,
+      "source_pdf": "《风起玲珑骨》第16-24集【0705 定稿版 TO AI组】(1).pdf",
+      "source_pdf_pages": [
+        13,
+        26
+      ],
+      "scene_count": 23
+    },
+    {
+      "episode": 18,
+      "file": "episode-18.txt",
+      "sha256": "188F41AF4A105DB405CD5DF9C484409ECC8954C045A07E6F299C76BFC95D6CA8",
+      "chars": 7710,
+      "lines": 372,
+      "source_pdf": "《风起玲珑骨》第16-24集【0705 定稿版 TO AI组】(1).pdf",
+      "source_pdf_pages": [
+        27,
+        37
+      ],
+      "scene_count": 18
+    },
+    {
+      "episode": 19,
+      "file": "episode-19.txt",
+      "sha256": "1D661345536B8BD9A7A02C3979184E83878BFDE446ACB99B82BA090310A0F243",
+      "chars": 7496,
+      "lines": 355,
+      "source_pdf": "《风起玲珑骨》第16-24集【0705 定稿版 TO AI组】(1).pdf",
+      "source_pdf_pages": [
+        38,
+        47
+      ],
+      "scene_count": 17
+    },
+    {
+      "episode": 20,
+      "file": "episode-20.txt",
+      "sha256": "90C4A0F9720D35BD7B1C4D2E7FCACCCF586302100DFE93BB2C87F6B89BE1E4FC",
+      "chars": 5450,
+      "lines": 267,
+      "source_pdf": "《风起玲珑骨》第16-24集【0705 定稿版 TO AI组】(1).pdf",
+      "source_pdf_pages": [
+        48,
+        55
+      ],
+      "scene_count": 15
+    },
+    {
+      "episode": 21,
+      "file": "episode-21.txt",
+      "sha256": "EBD32F3310E9B4CCFC6E6036A5F1A38B580F9DDC0D7AE92C65E209D526635732",
+      "chars": 9777,
+      "lines": 441,
+      "source_pdf": "《风起玲珑骨》第16-24集【0705 定稿版 TO AI组】(1).pdf",
+      "source_pdf_pages": [
+        56,
+        68
+      ],
+      "scene_count": 26
+    },
+    {
+      "episode": 22,
+      "file": "episode-22.txt",
+      "sha256": "5F111B394B66DE45D9E70C45D821367A95DEC13CDBCA71C1833A47815262D62F",
+      "chars": 8471,
+      "lines": 393,
+      "source_pdf": "《风起玲珑骨》第16-24集【0705 定稿版 TO AI组】(1).pdf",
+      "source_pdf_pages": [
+        69,
+        79
+      ],
+      "scene_count": 22
+    },
+    {
+      "episode": 23,
+      "file": "episode-23.txt",
+      "sha256": "E9DE2CD7FE9524DE61D4CD754FADC4376D6D6381539C854C9449B43CDB5C2197",
+      "chars": 8497,
+      "lines": 397,
+      "source_pdf": "《风起玲珑骨》第16-24集【0705 定稿版 TO AI组】(1).pdf",
+      "source_pdf_pages": [
+        80,
+        90
+      ],
+      "scene_count": 20
+    },
+    {
+      "episode": 24,
+      "file": "episode-24.txt",
+      "sha256": "CC4BA98F5DA9963D1FB3AA7AA3A0638F1D2889FA48CB4CC660156660426240CF",
+      "chars": 9824,
+      "lines": 447,
+      "source_pdf": "《风起玲珑骨》第16-24集【0705 定稿版 TO AI组】(1).pdf",
+      "source_pdf_pages": [
+        91,
+        103
+      ],
+      "scene_count": 22
+    }
+  ],
+  "scene_index": {
+    "file": "scene-index.jsonl",
+    "sha256": "07A158EAE6A6DF829BFC47F45E8EFD970CE7C8317F3289397034BE8647315B42"
+  },
+  "corpus_root_sha256": "C231F6EA60EF02B39C1328A35A218EC7D775A20E35027055752F81FEEA6CEA41"
+}

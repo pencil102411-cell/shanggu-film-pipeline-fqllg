@@ -1,0 +1,4 @@
+interface:
+  display_name: "Blender 灰模场景与预演视频"
+  short_description: "按平面图在本机 Blender 搭真实尺寸灰模，摆彩色人偶、编排走位运镜，导出 21:9/24 帧 Seedance 参考视频"
+  default_prompt: "请使用 $blender-greybox-previs，根据我提供的平面图和分镜，在本机 Blender 搭建灰模场景、摆放人物走位并设计运镜，导出给 Seedance 2.5 用的灰模预演视频。"

@@ -1,0 +1,11 @@
+# Local task files and environment settings
+/work/
+/outputs/
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+*.py[cod]
+Thumbs.db
+.DS_Store

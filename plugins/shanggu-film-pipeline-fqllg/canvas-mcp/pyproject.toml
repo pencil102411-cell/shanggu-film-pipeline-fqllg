@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "xuanshang-canvas-mcp"
+version = "0.4.2"
+description = "玄上无限画布插件：让 Claude Code、Codex 等支持 MCP 的 AI 工具用同一套规则操作本机画布"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+# 固定版本号：升级前先测，再发布新版（计划第 11 节「依赖包升级」）。
+dependencies = [
+    "mcp==2.3.0",
+    "httpx2==2.13.1",
+]
+
+[project.scripts]
+xuanshang-canvas-mcp = "xuanshang_canvas.mcp_server.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/xuanshang_canvas"]
+
+# 规则源文件只有 rules/RULES.md 一份，打包时复制进去，MCP 服务的使用说明直接读它。
+[tool.hatch.build.targets.wheel.force-include]
+"rules/RULES.md" = "xuanshang_canvas/RULES.md"
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "rules", "README.md", "LICENSE", "pyproject.toml"]
+
+# 插件代码是复制进依赖目录的（不是记路径），源码一改就要重新打包，这里告诉 uv 哪些文件变了要重装。
+[tool.uv]
+cache-keys = [{ file = "pyproject.toml" }, { file = "src/**/*.py" }, { file = "rules/RULES.md" }]

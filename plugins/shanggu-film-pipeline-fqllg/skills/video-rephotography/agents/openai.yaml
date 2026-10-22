@@ -1,0 +1,4 @@
+interface:
+  display_name: "原片锁定多机位重摄影"
+  short_description: "保留原片表演、对白、动作与时间轴，设计多机位视频重摄影提示词"
+  default_prompt: "使用 $video-rephotography 分析这段原片，在保留表演、对白、视线和节奏的前提下，设计多机位重摄影方案；先列出新机位需要补充的人物、场景各面和道具参考图，补齐后再输出完整中文提示词。"
