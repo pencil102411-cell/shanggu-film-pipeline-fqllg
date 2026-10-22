@@ -94,27 +94,27 @@ $codex = (Get-ChildItem "$env:LOCALAPPDATA\OpenAI\Codex\bin" -Filter codex.exe -
 
 画布工具在 Codex 里要另外登记：第一次启动要装依赖、上传大视频要等认证，都比 Codex 默认的等待时间长，而 Codex 官方文档没写插件里怎么把等待时间调长，所以改在配置文件里登记。
 
-1. 放一个启动小脚本。它每次去插件缓存里找最新版的画布工具，插件更新后不用改配置：
+1. 放一个启动小脚本。它每次去插件缓存里找最新版的画布工具，插件更新后不用改配置。放在 `.codex` 文件夹里，不放 AppData：从 Claude 桌面版运行命令时，往 AppData 里新建的文件会被系统存进 Claude 自己的私有文件夹，Codex 看不到。
 
    ```powershell
-   $dst = "$env:LOCALAPPDATA\shanggu-film-pipeline-fqllg"; New-Item -ItemType Directory -Force $dst | Out-Null
+   $dst = "$env:USERPROFILE\.codex\shanggu-film-pipeline-fqllg"; New-Item -ItemType Directory -Force $dst | Out-Null
    Copy-Item "$env:USERPROFILE\.codex\.tmp\marketplaces\shanggu-film\tools\codex-canvas-launcher.ps1" "$dst\start-canvas.ps1" -Force
    ```
 
-2. 在 `%USERPROFILE%\.codex\config.toml` 末尾加上下面这段。已经有 `[mcp_servers.xuanshang-canvas]` 的，换掉旧的那段。`args` 里的路径用这一行打印出来，原样替换：`"$env:LOCALAPPDATA\shanggu-film-pipeline-fqllg\start-canvas.ps1" -replace '\\','/'`
+2. 在 `%USERPROFILE%\.codex\config.toml` 末尾加上下面这段。已经有 `[mcp_servers.xuanshang-canvas]` 的，换掉旧的那段。`args` 里的路径用这一行打印出来，原样替换：`"$env:USERPROFILE\.codex\shanggu-film-pipeline-fqllg\start-canvas.ps1" -replace '\\','/'`
 
    ```toml
    [mcp_servers.xuanshang-canvas]
    command = "powershell"
-   args = ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "C:/Users/你的用户名/AppData/Local/shanggu-film-pipeline-fqllg/start-canvas.ps1"]
+   args = ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "C:/Users/你的用户名/.codex/shanggu-film-pipeline-fqllg/start-canvas.ps1"]
    startup_timeout_sec = 120
    tool_timeout_sec = 300
    ```
 
-3. 自检，顺便把依赖提前装好（画布开着时显示「已连接」）。如果同一个窗口刚跑过 Claude Code 的自检，先运行 `Remove-Item Env:UV_PROJECT_ENVIRONMENT -ErrorAction SilentlyContinue`：
+3. 自检，顺便把依赖提前装好（画布开着时显示「已连接」）。如果同一个窗口刚跑过 Claude Code 的自检，先运行 `Remove-Item Env:UV_PROJECT_ENVIRONMENT -ErrorAction SilentlyContinue`。让 Claude 桌面版代装的，这一步最好自己从开始菜单打开 PowerShell 再跑一次：
 
    ```powershell
-   powershell -NoProfile -ExecutionPolicy Bypass -File "$env:LOCALAPPDATA\shanggu-film-pipeline-fqllg\start-canvas.ps1" --check
+   powershell -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\.codex\shanggu-film-pipeline-fqllg\start-canvas.ps1" --check
    ```
 
 4. 重启 Codex。在 Codex 里用 `$film-pipeline`、`$horizontal-cinematic-prompt-agent-v2` 这样的写法点名调用 skill。
@@ -135,7 +135,7 @@ Codex（`$codex` 的找法同上）：
 & $codex plugin add shanggu-film-pipeline-fqllg@shanggu-film
 ```
 
-更新后新开会话才生效。CHANGELOG 里写了「启动小脚本有改动」时，再做一次「安装 → Codex」第 1 步。
+更新后新开会话才生效。CHANGELOG 里写了「启动小脚本有改动」时，再做一次「安装 → Codex」第 1 步。从 1.0.1 或更早升级到 1.0.2 时，启动小脚本换了位置，要把「安装 → Codex」第 1～4 步重做一遍。
 
 Codex 也可以用仓库里的脚本更新，它会先比对版本，有新版才装：
 

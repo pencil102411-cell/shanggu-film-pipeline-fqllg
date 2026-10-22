@@ -7,7 +7,9 @@ $ErrorActionPreference = 'Stop'
 
 $pluginName = 'shanggu-film-pipeline-fqllg'
 $taskName = 'Codex - 上古影视工作流-FQLLG 自动更新'
-$stateRoot = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) "Codex\$pluginName"
+# 放在 .codex 文件夹里，不放 AppData：从 Claude 桌面版运行时，复制到 AppData 的更新脚本会被存进 Claude 的私有文件夹，
+# Windows 定时任务到点运行时看不到它。
+$stateRoot = Join-Path $env:USERPROFILE ".codex\$pluginName"
 $installedUpdater = Join-Path $stateRoot 'update-plugin.ps1'
 
 if ($Remove) {

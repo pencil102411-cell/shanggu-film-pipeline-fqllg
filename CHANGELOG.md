@@ -1,5 +1,15 @@
 # 更新记录
 
+## 1.0.2（2026-10-22）
+
+修 Codex 里画布连不上的问题。**启动小脚本换了位置：从 1.0.1 或更早升级的，要把 README「安装 → Codex」第 1～4 步重做一遍**（放新脚本、改配置文件里的路径、自检、重启 Codex）。Claude Code 不受影响。
+
+- 原因：Claude 桌面版是打包安装的应用，从它里面运行的命令往 AppData 里新建的文件，会被系统存进 Claude 自己的私有文件夹，Codex 看不到。在 Claude 里替 Codex 放启动小脚本，Codex 就一直找不到它，画布工具启动失败。
+- Codex 的启动小脚本改放 `%USERPROFILE%\.codex\shanggu-film-pipeline-fqllg\start-canvas.ps1`；画布工具没指定依赖目录时（Codex 就是这样），默认放 `%USERPROFILE%\.codex\shanggu-film-pipeline-fqllg\canvas-venv-<版本号>`。原来 `%LOCALAPPDATA%\shanggu-film-pipeline-fqllg\` 里的东西不再使用，可以删掉；当初是让 Claude 桌面版代装的，这些文件实际在 `%LOCALAPPDATA%\Packages\Claude_<一串字母>\LocalCache\Local\shanggu-film-pipeline-fqllg\`。
+- Codex 自动更新脚本（`tools/update-plugin.ps1`、`tools/register-auto-update.ps1`）的文件和日志也改放 `%USERPROFILE%\.codex\shanggu-film-pipeline-fqllg\`，原因同上：定时任务看不到 Claude 私有文件夹里的更新脚本。注册过自动更新的，重新运行一次 `register-auto-update.ps1`。
+- 启动小脚本按版本号挑插件缓存里最新的一版，不再按修改时间挑。
+- 总调度：画布连不上时先跑自检、照自检报的原因处理。多个会话同时用画布是正常的，不再一上来就让用户关其他会话。
+
 ## 1.0.1（2026-10-22）
 
 只改说明文字，规则和程序没变；启动小脚本没变，不用重做 Codex 安装第 1 步。

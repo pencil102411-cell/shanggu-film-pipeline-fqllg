@@ -8,7 +8,8 @@ $ErrorActionPreference = 'Stop'
 
 $marketplaceName = 'shanggu-film'
 $pluginName = 'shanggu-film-pipeline-fqllg'
-$stateRoot = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) "Codex\$pluginName"
+# 放在 .codex 文件夹里，不放 AppData：从 Claude 桌面版运行时，AppData 里新建的文件会被存进 Claude 的私有文件夹。
+$stateRoot = Join-Path $env:USERPROFILE ".codex\$pluginName"
 $logPath = Join-Path $stateRoot 'update.log'
 
 New-Item -ItemType Directory -Path $stateRoot -Force | Out-Null

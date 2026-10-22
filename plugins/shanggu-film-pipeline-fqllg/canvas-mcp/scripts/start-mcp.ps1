@@ -19,10 +19,12 @@ if (-not $candidates) {
 
 # 依赖目录按版本分开（Claude Code 通过 UV_PROJECT_ENVIRONMENT 指定基础位置）。
 # 原因：升级插件时，旧版本的会话可能还开着、占用着旧依赖目录里的文件，新版本如果用同一个目录就更新不了。
-# 没指定时（比如在 Codex 里启动），默认放到 %LOCALAPPDATA%\shanggu-film-pipeline-fqllg\canvas-venv，
+# 没指定时（比如在 Codex 里启动），默认放到 %USERPROFILE%\.codex\shanggu-film-pipeline-fqllg\canvas-venv。
 # 不放进插件文件夹：插件每次更新都会换一个新文件夹，依赖放在里面就得重新下载，Codex 启动会超时。
+# 不放进 AppData：从 Claude 桌面版运行的程序在 AppData 里新建的文件，会被系统存进 Claude 自己的私有文件夹，
+# Codex 看不到（2026-10-22 实测）。在 Claude 里替 Codex 跑自检时，依赖就会装到 Codex 找不到的地方。
 $base = $env:UV_PROJECT_ENVIRONMENT
-if (-not $base) { $base = Join-Path $env:LOCALAPPDATA 'shanggu-film-pipeline-fqllg\canvas-venv' }
+if (-not $base) { $base = Join-Path $env:USERPROFILE '.codex\shanggu-film-pipeline-fqllg\canvas-venv' }
 if ($base) {
     # Claude Code 传进来的是正斜杠路径，统一成 Windows 的完整写法，后面比较路径才不会出错。
     $base = [IO.Path]::GetFullPath($base).TrimEnd('\')
