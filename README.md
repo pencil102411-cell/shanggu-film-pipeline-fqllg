@@ -10,15 +10,17 @@
 | `horizontal-cinematic-prompt-agent-v2` | 把分镜写成可直接生成的 Seedance 提示词，检查、返修；场次记忆；内置《风起玲珑骨》24 集剧本、场次索引和人物表演圣经 | 主线 |
 | `blender-greybox-previs` | 按平面图在本机 Blender 搭真实尺寸的灰模，摆人偶、编走位和运镜，导出给 Seedance 当参考的预演视频 | 可选：走位复杂、要锁定站位和运镜时 |
 | `xuanshang-canvas` | 操作本机的玄上无限画布：上传认证素材、建视频节点、提交生成、样片转成片（画布工具随插件一起装） | 上画布时 |
-| `video-local-edit` | 在已有视频上局部修改，其余部分锁定不变 | 只在你明确要在已有视频上改时 |
-| `video-rephotography` | 保留已有视频的表演、对白和节奏，换机位重拍 | 只在你明确要换机位重拍时 |
+| `video-local-edit` | 在已有视频上局部修改，其余部分锁定不变 | 只在你点名时：说「视频编辑」「局部修改」「二次编辑」。光给视频、说哪里不对，走返修提示词重新生成 |
+| `video-rephotography` | 保留已有视频的表演、对白和节奏，换机位重拍 | 只在你点名「换机位重拍」「补拍角度」时 |
+| `video-depth-rerender` | 把已有视频转成深度视频（只留远近层次的黑白灰视频），当参考视频重新生成，换人物、换场景 | 只在你点名「深度视频」「转深度」「深度重渲染」时。只说换人物、换场景，走返修提示词重新生成 |
 
 ```
 分镜 ─┬─ 不做灰模（默认）──────────┐
       └─ 做灰模 → 灰模预演 ────────┴→ 写生成提示词 → 上画布生成
                                                     ├→ 满意 → 转成片
-                                                    ├→ 不满意（默认）→ 返修提示词 → 重新生成
-                                                    └→ 明确要改已有视频 → 局部修改 / 换机位重拍 → 上画布
+                                                    ├→ 不满意（默认，给视频让 AI 看也算）→ 返修提示词 → 重新生成
+                                                    ├→ 点名「视频编辑」「换机位重拍」→ 局部修改 / 换机位重拍 → 上画布
+                                                    └→ 点名「深度视频」「转深度」→ 转深度视频 → 写生成提示词（换人物、换场景）→ 上画布
 ```
 
 分镜本身不在本插件里做。说「开这一场」时，总调度会在当前文件夹建这场的项目文件夹和进度表，之后每一步做完都停下等你确认；提交生成、转成片只在你明确说时才做。示例见 [docs/示例项目/](docs/示例项目/README.md)。
@@ -27,7 +29,7 @@
 
 最省事的办法：把下面这句话原样发给 Claude Code 或 Codex，它会照这份 README 帮你装好。
 
-> 请帮我安装「上古影视工作流-FQLLG」插件：按 https://github.com/pencil102411-cell/shanggu-film-pipeline-fqllg 这个仓库 README 里「安装」一节操作。装之前先按「装之前：撤掉旧版本」检查，有旧版本的先列出来问我。装完运行自检，把结果告诉我。
+> 请帮我安装「上古影视工作流-FQLLG」插件：按 https://github.com/pencil102411-cell/shanggu-film-pipeline-fqllg 这个仓库 README 里「安装」一节操作。装之前先按「装之前：撤掉旧版本」检查，有旧版本的先列出来问我。装完运行自检，再按「检查深度视频工具」查一下这台电脑有没有转换工具，没有的先告诉我要装什么、多大、装到哪，问我要不要装。最后把结果告诉我。
 
 下面的命令都在普通 PowerShell 窗口里运行（不用管理员）。
 
@@ -35,6 +37,7 @@
 
 - **画布**：装好并打开玄上无限画布（或玄上内部版），登录自己的账号；电脑上要有 uv（画布工具运行要用的小工具）。没有 uv 时运行 `winget install --id=astral-sh.uv -e`。
 - **灰模**（用到时才要）：Blender 4.2 及以上、Python 3.9 及以上、Pillow、FFmpeg。第一次用时运行灰模的 `setup`，见 [安装与MCP.md](plugins/shanggu-film-pipeline-fqllg/skills/blender-greybox-previs/references/安装与MCP.md)。
+- **深度视频**（用到时才要）：转换工具「离线深度视频」，只支持 Windows。它有 800 多 MB，不放在插件里；装完插件后按下面「检查深度视频工具」查一次，电脑上已经有就直接用，没有再装。
 
 ### 装之前：撤掉旧版本
 
@@ -119,6 +122,26 @@ $codex = (Get-ChildItem "$env:LOCALAPPDATA\OpenAI\Codex\bin" -Filter codex.exe -
 
 4. 重启 Codex。在 Codex 里用 `$film-pipeline`、`$horizontal-cinematic-prompt-agent-v2` 这样的写法点名调用 skill。
 
+### 检查深度视频工具
+
+不做深度重渲染的可以跳过。这一步只是在电脑上找一找转换工具「离线深度视频」，不下载、不安装：以前装过（桌面或开始菜单有它的快捷方式、或装在常见位置）就会找到，并记住位置，以后直接用。
+
+Claude Code（`$root` 的取法见上面「Claude Code」一节的自检）：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File "$root\skills\video-depth-rerender\scripts\depth-tool.ps1" check
+```
+
+Codex：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\.codex\.tmp\marketplaces\shanggu-film\plugins\shanggu-film-pipeline-fqllg\skills\video-depth-rerender\scripts\depth-tool.ps1" check
+```
+
+显示「未安装」时，把命令末尾的 `check` 换成 `install` 再运行一次：这一次只打印要装什么、多大（下载约 370 MB，装好约 870 MB）、装到哪（默认 `%USERPROFILE%\.shanggu-film-pipeline-fqllg\offline-video-depth`），仍然不下载。确认要装，在末尾再加 ` -Yes` 运行，它会从本仓库的发布页下载、核对文件没被改过、解压。想装到别的位置，加 ` -InstallDir "D:\某个文件夹"`。
+
+没提前装也没关系：第一次说「转深度」时，`video-depth-rerender` 会先做同样的检查，没有就先问你。
+
 ## 更新
 
 Claude Code：
@@ -154,7 +177,7 @@ plugins/shanggu-film-pipeline-fqllg/
 ├─ .claude-plugin/plugin.json        Claude Code 插件清单
 ├─ .codex-plugin/plugin.json         Codex 插件清单
 ├─ .mcp.json                         Claude Code 启动画布工具的配置
-├─ skills/                           6 个 skill（总调度 + 5 个工作 skill）
+├─ skills/                           7 个 skill（总调度 + 6 个工作 skill）
 ├─ shared/                           几个 skill 共用的 Seedance 平台说明、素材引用写法、信息来源标注
 └─ canvas-mcp/                       画布工具的程序
 docs/                                示例项目、演示视频、旧仓库的更新记录（不随插件安装）
@@ -172,6 +195,7 @@ tools/
 - 画布工具的版本号单独管：画布代码或依赖有变化时才改，见 [canvas-mcp/README.md](plugins/shanggu-film-pipeline-fqllg/canvas-mcp/README.md)「给维护者」。
 - 画布规则只改 `canvas-mcp/rules/RULES.md`，再运行 `canvas-mcp/scripts/build_adapters.py` 生成画布 skill。规则里涉及引用写法、画布限制的改动，同步改 `shared/素材引用写法.md` 和 `shared/Seedance平台.md`。
 - 平台限额、任务类型、引用写法这类几个 skill 都要用的知识，只写在 `shared/` 里，各 skill 指过去，不要再各抄一份。
+- 深度视频转换工具的安装包不放进仓库（GitHub 不收超过 100 MB 的单个文件），放在发布页（Releases）`depth-tool-<版本>` 这个标签下。换新版时：重新打包上传，再改 `skills/video-depth-rerender/scripts/depth-tool-package.json` 里的版本、下载地址、大小和 SHA256（文件的校验码，用来确认下载的文件没被改过）。安装包没上传或这几项对不上，别人安装时会下载失败或校验不通过。
 - 剧本资料（`references/风起玲珑骨/剧本/`）不要手改；换行规则由 `.gitattributes` 固定，改坏了剧本校验会报错。
 - 仓库别放在太深的文件夹里。Windows 默认只认 260 个字符以内的完整路径，最长的剧本 PDF 路径已接近 200 字；超出后剧本校验会报"PDF 找不到"，其实是路径太长。
 
@@ -182,6 +206,8 @@ tools/
 `plugins/shanggu-film-pipeline-fqllg/skills/horizontal-cinematic-prompt-agent-v2/references/风起玲珑骨/` 下的剧本资料（定稿 PDF、逐集正文、场次索引、人物表演圣经）**不在 MIT 许可范围内**，版权归原权利人。
 
 `plugins/shanggu-film-pipeline-fqllg/skills/video-rephotography/references/scenario-original-prompt.txt` 是第三方公开发布的提示词原文副本，同样不在 MIT 许可范围内，版权归原作者（来源见该 skill 的 README）。
+
+发布页上的深度视频转换工具安装包同样不在 MIT 许可范围内。它带有第三方组件：FFmpeg（GPL v3 许可）、Depth Anything V2 Small 模型（Apache-2.0 许可）、PyTorch 等，许可说明和源码地址在安装包的 `licenses/` 文件夹里。
 
 ## 来源
 

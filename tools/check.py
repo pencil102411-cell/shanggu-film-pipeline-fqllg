@@ -27,6 +27,7 @@ EXPECTED_SKILLS = {
     "film-pipeline",
     "blender-greybox-previs",
     "horizontal-cinematic-prompt-agent-v2",
+    "video-depth-rerender",
     "video-local-edit",
     "video-rephotography",
     "xuanshang-canvas",

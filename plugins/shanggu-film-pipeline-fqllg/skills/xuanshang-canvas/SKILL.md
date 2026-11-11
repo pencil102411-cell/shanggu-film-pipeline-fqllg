@@ -61,7 +61,7 @@ Seedance 2.5、多模态参考、样片（draft）、21:9、种子 1、MP4、联
 
 ## 和总调度的配合
 
-在「上古影视工作流-FQLLG」插件里，能找到这场的 `进度表.md`（在当前文件夹、上一级，或往下两层的 `作品/集场/` 里）时是总调度 `film-pipeline` 的项目模式。这一步又不是 film-pipeline 交过来的时（交过来的交接说明以「项目模式（总调度交过来）」开头），先加载总调度 `film-pipeline`（Claude Code 里是 `/shanggu-film-pipeline-fqllg:film-pipeline`，Codex 里是 `$film-pipeline`），按它的规则做；做完由它存文件、更新进度表，并用白话告诉用户存在哪、进度表改了哪一条。
+在「上古影视工作流-FQLLG」插件里，能找到这场的 `进度表.md`（在当前文件夹、上一级，或往下两层以内的 `集场/`、`作品/集场/` 里）时是总调度 `film-pipeline` 的项目模式。这一步又不是 film-pipeline 交过来的时（交过来的交接说明以「项目模式（总调度交过来）」开头），先加载总调度 `film-pipeline`（Claude Code 里是 `/shanggu-film-pipeline-fqllg:film-pipeline`，Codex 里是 `$film-pipeline`），按它的规则做；做完由它存文件、更新进度表，并用白话告诉用户存在哪、进度表改了哪一条。
 
 - 用户用「第N条」指节点时，先查进度表里记的节点名。
 - 建节点前，按接线单给 `image_nodes`、`video_nodes` 排顺序：生成用 `04_接线单/第N条_vN.md`，局部修改、换机位用 `05_修改/` 里那份。按提示词的实际时长和任务类型传 `duration`、`seedance_mode`，不要直接用默认的 5 秒（视频编辑不传时长；多模态参考以外的模式不传比例）。

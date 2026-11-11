@@ -1,0 +1,4 @@
+interface:
+  display_name: "深度视频重渲染"
+  short_description: "把已有视频转成深度视频，当参考视频重新生成，换人物换场景"
+  default_prompt: "使用 $video-depth-rerender 把我提供的视频转成深度视频，做深度重渲染：先检查本机有没有转换工具，转好后列出要换成的人物和场景参考图，再写交接卡。"
