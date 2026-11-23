@@ -35,7 +35,7 @@
 
 ### 先准备
 
-- **画布**：装好并打开玄上无限画布（或玄上内部版），登录自己的账号；电脑上要有 uv（画布工具运行要用的小工具）。没有 uv 时运行 `winget install --id=astral-sh.uv -e`。
+- **画布**：装好并打开玄上无限画布（或玄上内部版、七色星沅画布，插件会自动认出是哪个），登录自己的账号；电脑上要有 uv（画布工具运行要用的小工具）。没有 uv 时运行 `winget install --id=astral-sh.uv -e`。
 - **灰模**（用到时才要）：Blender 4.2 及以上、Python 3.9 及以上、Pillow、FFmpeg。第一次用时运行灰模的 `setup`，见 [安装与MCP.md](plugins/shanggu-film-pipeline-fqllg/skills/blender-greybox-previs/references/安装与MCP.md)。
 - **深度视频**（用到时才要）：转换工具「离线深度视频」，只支持 Windows。它有 800 多 MB，不放在插件里；装完插件后按下面「检查深度视频工具」查一次，电脑上已经有就直接用，没有再装。
 

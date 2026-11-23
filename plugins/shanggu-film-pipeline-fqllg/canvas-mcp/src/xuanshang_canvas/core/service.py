@@ -19,19 +19,35 @@ from .errors import CanvasApiError, CanvasConnectionError, CanvasError, RuleViol
 from .media import IMAGE_EXTENSIONS, MAX_IMAGE_SIDE, VIDEO_EXTENSIONS, local_image_info, transfer_name, verify_upload
 from .rules import KIND_LABEL, build_video_params, canvas_view, check_prompt, compare_fields, dedupe_name, describe_params, find_format_problems
 
-PROVIDER = "xuanshang"
-REMOTE_PROJECT = "default"  # 玄上之音那边的 ProjectName，画布固定用 default
-VERIFIED_BUILDS = {"20260923203739": "玄上内部版"}
+REMOTE_PROJECT = "default"  # 供应商那边的 ProjectName，画布固定用 default
+VERIFIED_BUILDS = {"20260923203739": "玄上内部版", "20261122145915": "七色星沅"}
 TASK_STATUS = {"queued": "排队中", "running": "生成中", "succeeded": "已完成", "failed": "失败", "cancelled": "已取消"}
 CERT_STATUS = {"Active": "已认证（Active）", "Processing": "认证中", "Failed": "认证失败"}
-VIDEO_NODE_DEFAULTS = {
-    "provider": PROVIDER,
-    "bitrateMode": "high",
-    "generateAudio": True,
-    "priority": 0,
-    "returnLastFrame": False,
-    "watermark": False,
-    "executionExpiresAfter": 172800,
+# 同一套画布程序的不同品牌：接口一样，Seedance 视频节点的类型和认证素材的供应商不同。
+# 键是画布 brand.json 里的 brand；读不到 brand 时按画布里有哪种视频节点来认。
+BRANDS: dict[str, dict[str, Any]] = {
+    "xuanshang": {
+        "label": "玄上之音",
+        "provider": "xuanshang",
+        "video_node": "video-generation",
+        "default_name": "玄上-Seedance",
+        "node_defaults": {
+            "provider": "xuanshang",
+            "bitrateMode": "high",
+            "generateAudio": True,
+            "priority": 0,
+            "returnLastFrame": False,
+            "watermark": False,
+            "executionExpiresAfter": 172800,
+        },
+    },
+    "qise": {
+        "label": "七色星沅",
+        "provider": "qise",
+        "video_node": "video-generation-qise",
+        "default_name": "七色星沅-Seedance",
+        "node_defaults": {"provider": "qise", "generateAudio": True},
+    },
 }
 PARAM_KEYS = ["model", "seedanceMode", "resolution", "ratio", "duration", "seed", "outputFormat", "webSearch"]
 
@@ -88,6 +104,7 @@ class CanvasService:
         self._client: CanvasClient | None = None
         self._definitions: dict[str, dict[str, Any]] | None = None
         self._compat: dict[str, Any] | None = None
+        self._brand_key: str | None = None
         self._lock = threading.RLock()
 
     # ------------------------------------------------------------------ 连接
@@ -99,6 +116,23 @@ class CanvasService:
         self._instance = None
         self._definitions = None
         self._compat = None
+        self._brand_key = None
+
+    @property
+    def brand(self) -> dict[str, Any]:
+        """当前连着的画布用哪套节点类型和供应商。"""
+        if self._brand_key is None:
+            self.connect(require_compatible=False)
+        return BRANDS[self._brand_key or "xuanshang"]
+
+    def _pick_brand(self, by_id: dict[str, Any]) -> str:
+        hint = self._instance.brand if self._instance else None
+        if hint in BRANDS and BRANDS[hint]["video_node"] in by_id:
+            return hint
+        for key, profile in BRANDS.items():
+            if profile["video_node"] in by_id:
+                return key
+        return hint if hint in BRANDS else "xuanshang"
 
     def connect(self, *, require_compatible: bool = True) -> CanvasClient:
         with self._lock:
@@ -158,9 +192,11 @@ class CanvasService:
             definitions = client.get("/api/nodes")
             by_id = {item["id"]: item for item in definitions if isinstance(item, dict) and "id" in item}
             self._definitions = by_id
-            video = by_id.get("video-generation")
+            self._brand_key = self._pick_brand(by_id)
+            video_node = BRANDS[self._brand_key]["video_node"]
+            video = by_id.get(video_node)
             if not video:
-                problems.append("画布里没有 Seedance 视频生成节点（video-generation）")
+                problems.append(f"画布里没有 Seedance 视频生成节点（{video_node}）")
             else:
                 inputs = {i.get("type") for i in video.get("inputs") or []}
                 if not {"image", "video"} <= inputs:
@@ -181,7 +217,8 @@ class CanvasService:
             except CanvasError as exc:
                 problems.append(f"{label}检查失败：{exc.message}")
         try:
-            status, got = client.raw_post("/api/certified-assets/groups/list", {})
+            provider = BRANDS[self._brand_key or "xuanshang"]["provider"]
+            status, got = client.raw_post("/api/certified-assets/groups/list", {"providerId": provider})
             if not (isinstance(got, dict) and "projectId" in str(got.get("error", ""))):
                 problems.append(f"认证素材接口的返回和预期不一样（HTTP {status}）")
         except CanvasError as exc:
@@ -336,7 +373,7 @@ class CanvasService:
             node_type = node.get("type")
             data = node.get("data") or {}
             hidden = g.is_hidden(node, by_id)
-            if node_type == "video-generation":
+            if node_type == self.brand["video_node"]:
                 task = latest.get(node["id"])
                 video_nodes.append(
                     {
@@ -387,7 +424,7 @@ class CanvasService:
         }
 
     def _groups(self, project_id: str) -> list[dict[str, Any]]:
-        data = self.connect().post("/api/certified-assets/groups/list", {"projectId": project_id, "providerId": PROVIDER})
+        data = self.connect().post("/api/certified-assets/groups/list", {"projectId": project_id, "providerId": self.brand["provider"]})
         return (data or {}).get("items") or []
 
     def _resolve_group(self, project: dict[str, Any], group: str) -> dict[str, Any]:
@@ -462,7 +499,7 @@ class CanvasService:
                     "projectId": proj["id"],
                     "name": key,
                     "description": (description or "").strip(),
-                    "providerId": PROVIDER,
+                    "providerId": self.brand["provider"],
                     "projectName": REMOTE_PROJECT,
                 },
             )
@@ -486,7 +523,7 @@ class CanvasService:
 
     def _remote_asset(self, asset_id: str) -> dict[str, Any]:
         return self.connect().post(
-            "/api/certified-assets/get", {"id": asset_id, "projectName": REMOTE_PROJECT, "providerId": PROVIDER}
+            "/api/certified-assets/get", {"id": asset_id, "projectName": REMOTE_PROJECT, "providerId": self.brand["provider"]}
         )
 
     def certified_groups(self, project: str) -> dict[str, Any]:
@@ -507,7 +544,7 @@ class CanvasService:
                 listing = client.post(
                     "/api/certified-assets/list-cloud",
                     {
-                        "providerId": PROVIDER,
+                        "providerId": self.brand["provider"],
                         "filter": {"groupIds": [group["id"]]},
                         "pageNumber": page,
                         "pageSize": 100,
@@ -540,7 +577,7 @@ class CanvasService:
                     }
                 )
             result_groups.append({"分组名": group.get("name"), "分组ID": group.get("id"), "素材": assets})
-        return {"项目": {"名称": proj.get("name"), "ID": proj["id"]}, "认证分组": result_groups, "说明": "状态是向玄上实时查的"}
+        return {"项目": {"名称": proj.get("name"), "ID": proj["id"]}, "认证分组": result_groups, "说明": f"状态是向{self.brand['label']}实时查的"}
 
     def get_task(self, project: str, task_id: str | None = None, node: str | None = None) -> dict[str, Any]:
         proj = self.resolve_project(project)
@@ -624,7 +661,7 @@ class CanvasService:
             uploaded = client.upload(
                 "/api/certified-assets/upload",
                 fields={
-                    "providerId": PROVIDER,
+                    "providerId": self.brand["provider"],
                     "groupId": group["id"],
                     "assetType": "Image" if kind == "image" else "Video",
                     "projectName": REMOTE_PROJECT,
@@ -649,7 +686,7 @@ class CanvasService:
         warnings: list[str] = []
         if hosting != "xszy":
             warnings.append(
-                f"玄上存储上传失败，画布自动改传到了公共图床（{hosting}）：这个文件现在在公网上，拿到链接的人都能打开。是否继续使用，由使用者决定。"
+                f"这个文件没有存进玄上自己的存储，画布把它传到了公共图床（{hosting}）：这个文件现在在公网上，拿到链接的人都能打开。是否继续使用，由使用者决定。"
             )
         check = verify_upload(url, path, kind=kind, tolerance=self.settings.size_tolerance, expect_resized=resized) if url else None
         if check:
@@ -756,7 +793,7 @@ class CanvasService:
                     "type": "certified-asset",
                     "ui": {"x": x, "y": y + offset * 220, "width": g.NODE_W, "height": g.NODE_H, "nodeType": "certified-asset", "label": display},
                     "data": {
-                        "providerId": PROVIDER,
+                        "providerId": self.brand["provider"],
                         "assetId": asset["id"],
                         "groupId": asset.get("groupId"),
                         "name": display,
@@ -856,8 +893,8 @@ class CanvasService:
             raise RuleViolation("没有创建视频节点，因为：\n- " + "\n- ".join(problems))
 
         final_params = build_video_params(self.settings.video_defaults, params or {}, counts)
-        existing_names = [g.label_of(node) for node in nodes if node.get("type") == "video-generation"]
-        final_name = dedupe_name(name or "玄上-Seedance", existing_names)
+        existing_names = [g.label_of(node) for node in nodes if node.get("type") == self.brand["video_node"]]
+        final_name = dedupe_name(name or self.brand["default_name"], existing_names)
 
         rects = g.occupied_rects(nodes)
         if sources:
@@ -868,13 +905,13 @@ class CanvasService:
         else:
             x, y = g.find_free_spot(rects, width=g.NODE_W, height=g.NODE_H)
 
-        node_id = g.new_id("video-generation")
+        node_id = g.new_id(self.brand["video_node"])
         order = [node["id"] for _, node in sources]
-        data = {**VIDEO_NODE_DEFAULTS, **final_params, "prompt": check.prompt, "inputAssetOrder": order}
+        data = {**self.brand["node_defaults"], **final_params, "prompt": check.prompt, "inputAssetOrder": order}
         video_node = {
             "id": node_id,
-            "type": "video-generation",
-            "ui": {"x": x, "y": y, "width": g.NODE_W, "height": g.NODE_H, "nodeType": "video-generation", "label": final_name},
+            "type": self.brand["video_node"],
+            "ui": {"x": x, "y": y, "width": g.NODE_W, "height": g.NODE_H, "nodeType": self.brand["video_node"], "label": final_name},
             "data": data,
         }
         edges = [
@@ -899,7 +936,7 @@ class CanvasService:
             "保存核对": "一致（画布里保存的提示词、素材顺序、参数都和请求一样）" if not mismatches else mismatches,
             "引用格式检查": f"通过：全文 {check.reference_count} 处素材引用都是画布能识别的 (图片N)/(视频N) 写法，没有漏括号、省略或范围写法",
         }
-        if final_name != (name or "玄上-Seedance").strip():
+        if final_name != (name or self.brand["default_name"]).strip():
             result["改名说明"] = f"已有同名节点，自动改名为「{final_name}」，旧节点保留不动"
         if check.converted:
             result["引用格式已转换"] = check.converted
@@ -945,7 +982,7 @@ class CanvasService:
         graph = self._graph(proj["id"])
         tasks = self._tasks(proj["id"])
         target = self._resolve_node(graph, node, "视频节点")
-        if target.get("type") != "video-generation":
+        if target.get("type") != self.brand["video_node"]:
             raise RuleViolation(f"「{g.label_of(target)}」不是 Seedance 视频生成节点，第一版只支持提交这种节点。")
         running = [t for t in tasks if t.get("nodeId") == target["id"] and t.get("status") in ("queued", "running")]
         if running:
@@ -1013,8 +1050,8 @@ class CanvasService:
             problems.append("这个任务不是样片（draft），不需要转成片")
         if source.get("modelId") != "Doubao-Seedance-2.5":
             problems.append("只有 Seedance 2.5 的样片能转成片")
-        if source.get("providerId") != PROVIDER:
-            problems.append("只支持玄上之音的任务")
+        if source.get("providerId") != self.brand["provider"]:
+            problems.append(f"只支持{self.brand['label']}的任务")
         age_days = (time.time() * 1000 - float(source.get("createdAt") or 0)) / 86400000
         if age_days >= 7:
             problems.append("样片已经超过 7 天有效期")
