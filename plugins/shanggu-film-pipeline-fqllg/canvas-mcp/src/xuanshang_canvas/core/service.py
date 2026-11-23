@@ -20,7 +20,7 @@ from .media import IMAGE_EXTENSIONS, MAX_IMAGE_SIDE, VIDEO_EXTENSIONS, local_ima
 from .rules import KIND_LABEL, build_video_params, canvas_view, check_prompt, compare_fields, dedupe_name, describe_params, find_format_problems
 
 REMOTE_PROJECT = "default"  # 供应商那边的 ProjectName，画布固定用 default
-VERIFIED_BUILDS = {"20260923203739": "玄上内部版", "20261122145915": "七色星沅"}
+VERIFIED_BUILDS = {"20260923203739": "玄上内部版", "20261122145915": "七色星沅", "20261123103952": "七色星沅"}
 TASK_STATUS = {"queued": "排队中", "running": "生成中", "succeeded": "已完成", "failed": "失败", "cancelled": "已取消"}
 CERT_STATUS = {"Active": "已认证（Active）", "Processing": "认证中", "Failed": "认证失败"}
 # 同一套画布程序的不同品牌：接口一样，Seedance 视频节点的类型和认证素材的供应商不同。
