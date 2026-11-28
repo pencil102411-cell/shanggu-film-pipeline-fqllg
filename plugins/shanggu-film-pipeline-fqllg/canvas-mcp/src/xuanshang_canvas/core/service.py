@@ -20,17 +20,20 @@ from .media import IMAGE_EXTENSIONS, MAX_IMAGE_SIDE, VIDEO_EXTENSIONS, local_ima
 from .rules import KIND_LABEL, build_video_params, canvas_view, check_prompt, compare_fields, dedupe_name, describe_params, find_format_problems
 
 REMOTE_PROJECT = "default"  # 供应商那边的 ProjectName，画布固定用 default
-VERIFIED_BUILDS = {"20260923203739": "玄上内部版", "20261122145915": "七色星沅", "20261123103952": "七色星沅"}
+VERIFIED_BUILDS = {"20260923203739": "玄上内部版", "20261122145915": "七色星沅", "20261123103952": "七色星沅", "20261127202544": "七色星沅"}
 TASK_STATUS = {"queued": "排队中", "running": "生成中", "succeeded": "已完成", "failed": "失败", "cancelled": "已取消"}
 CERT_STATUS = {"Active": "已认证（Active）", "Processing": "认证中", "Failed": "认证失败"}
 # 同一套画布程序的不同品牌：接口一样，Seedance 视频节点的类型和认证素材的供应商不同。
 # 键是画布 brand.json 里的 brand；读不到 brand 时按画布里有哪种视频节点来认。
+# needs_certification：本地参考视频是否必须先认证。七色星沅 20261127 起不用认证：
+# 本地图片/视频直接放到画布上，提交时画布自己传到公共图床再交给 Seedance。
 BRANDS: dict[str, dict[str, Any]] = {
     "xuanshang": {
         "label": "玄上之音",
         "provider": "xuanshang",
         "video_node": "video-generation",
         "default_name": "玄上-Seedance",
+        "needs_certification": True,
         "node_defaults": {
             "provider": "xuanshang",
             "bitrateMode": "high",
@@ -46,6 +49,7 @@ BRANDS: dict[str, dict[str, Any]] = {
         "provider": "qise",
         "video_node": "video-generation-qise",
         "default_name": "七色星沅-Seedance",
+        "needs_certification": False,
         "node_defaults": {"provider": "qise", "generateAudio": True},
     },
 }
@@ -201,7 +205,7 @@ class CanvasService:
                 inputs = {i.get("type") for i in video.get("inputs") or []}
                 if not {"image", "video"} <= inputs:
                     problems.append("视频生成节点不再接受图片/视频输入")
-            if "certified-asset" not in by_id:
+            if BRANDS[self._brand_key]["needs_certification"] and "certified-asset" not in by_id:
                 problems.append("画布里没有认证素材节点（certified-asset）")
         except CanvasError as exc:
             problems.append(f"读不到节点类型列表：{exc.message}")
@@ -216,13 +220,14 @@ class CanvasService:
                     problems.append(f"{label}的返回和预期不一样（HTTP {got_status}：{str(got)[:120]}）")
             except CanvasError as exc:
                 problems.append(f"{label}检查失败：{exc.message}")
-        try:
-            provider = BRANDS[self._brand_key or "xuanshang"]["provider"]
-            status, got = client.raw_post("/api/certified-assets/groups/list", {"providerId": provider})
-            if not (isinstance(got, dict) and "projectId" in str(got.get("error", ""))):
-                problems.append(f"认证素材接口的返回和预期不一样（HTTP {status}）")
-        except CanvasError as exc:
-            problems.append(f"认证素材接口检查失败：{exc.message}")
+        if BRANDS[self._brand_key or "xuanshang"]["needs_certification"]:
+            try:
+                provider = BRANDS[self._brand_key or "xuanshang"]["provider"]
+                status, got = client.raw_post("/api/certified-assets/groups/list", {"providerId": provider})
+                if not (isinstance(got, dict) and "projectId" in str(got.get("error", ""))):
+                    problems.append(f"认证素材接口的返回和预期不一样（HTTP {status}）")
+            except CanvasError as exc:
+                problems.append(f"认证素材接口检查失败：{exc.message}")
         return {"ok": not problems, "problems": problems}
 
     def definitions(self) -> dict[str, dict[str, Any]]:
@@ -253,6 +258,8 @@ class CanvasService:
             "兼容性问题": (self._compat or {}).get("problems") or [],
             "已验证版本": "是" if build in VERIFIED_BUILDS else ("未知（没读到构建号）" if not build else "否，这个构建号还没实测过，用的时候留意报错"),
             "项目数量": len(projects),
+            "素材要不要认证": "要：本地参考视频必须先认证" if self.brand["needs_certification"]
+            else "不用：本地图片、视频用 upload_local_asset 直接放到画布上就能接进视频节点",
             "认证等待上限秒数": self.settings.certify_wait_seconds,
             "配置来源": self.settings.source,
         }
@@ -402,6 +409,15 @@ class CanvasService:
                     **({"已停用": True} if hidden else {}),
                 }
                 (videos if str(data.get("assetType")).lower() == "video" else images).append(entry)
+            elif node_type in ("image-asset", "video-asset"):
+                entry = {
+                    "节点ID": node["id"],
+                    "节点名": g.label_of(node),
+                    "状态": "可用" if data.get("status") in (None, "ready") else f"还没准备好（{data.get('status')}）",
+                    **({"已停用": True} if hidden else {}),
+                }
+                key = "本地图片节点" if node_type == "image-asset" else "本地视频节点"
+                others.setdefault(key, []).append(entry)
             elif node_type == "generation-observation":
                 task = latest.get(node["id"])
                 others.setdefault("成片节点", []).append(
@@ -815,6 +831,143 @@ class CanvasService:
             "保存核对": "一致" if not mismatches else mismatches,
         }
 
+    # ------------------------------------------------------------------ 放本地素材节点（不认证）
+
+    def upload_local_asset(
+        self,
+        project: str,
+        file_path: str,
+        display_name: str | None = None,
+        allow_duplicate: bool = False,
+    ) -> dict[str, Any]:
+        """把本地图片 / 参考视频按原文件放进画布项目，并在画布上放一个本地素材节点。不认证。
+
+        七色星沅：本地素材直接能接进视频节点，提交时画布自己传到公共图床再交给 Seedance。
+        玄上：本地图片可以这样放；本地参考视频仍要先认证。
+        """
+        proj = self.resolve_project(project)
+        path = Path(str(file_path or "").strip().strip('"')).expanduser()
+        if not path.is_absolute():
+            raise CanvasError(f"请给文件的完整路径（比如 C:\\素材\\人物.png），现在是「{file_path}」。")
+        if not path.is_file():
+            raise CanvasError(f"文件不存在：{path}")
+        ext = path.suffix.lower()
+        if ext in IMAGE_EXTENSIONS:
+            kind, mime = "image", IMAGE_EXTENSIONS[ext]
+        elif ext in VIDEO_EXTENSIONS:
+            kind, mime = "video", VIDEO_EXTENSIONS[ext]
+        else:
+            raise RuleViolation(
+                f"只支持图片（{'、'.join(IMAGE_EXTENSIONS)}）和参考视频（{'、'.join(VIDEO_EXTENSIONS)}），这个文件是「{ext or '没有扩展名'}」。"
+            )
+        if kind == "video" and self.brand["needs_certification"]:
+            raise RuleViolation(
+                f"{self.brand['label']}的本地参考视频必须先认证，请改用 upload_certified_video 上传认证，再用 add_certified_asset_node 放到画布上。"
+            )
+        oversized = None
+        if kind == "image":
+            info = local_image_info(path)
+            if info is None:
+                raise RuleViolation(f"读不出这张图片的尺寸，可能文件损坏或不是真正的 {ext} 图片：{path}")
+            if max(info[1], info[2]) > MAX_IMAGE_SIDE:
+                oversized = (info[1], info[2])
+        display = (display_name or path.name).strip() or path.name
+        client = self.connect()
+        name = transfer_name(kind, path)
+        try:
+            asset = client.upload(
+                f"/api/projects/{proj['id']}/assets", fields={}, file_path=path, transfer_name=name, mime=mime
+            )
+        except CanvasApiError as exc:
+            raise CanvasApiError(f"上传失败，画布原始报错：{exc.message}", status=exc.status, code=exc.code, raw=exc.raw) from exc
+        asset_id = asset.get("id")
+        if not asset_id:
+            raise CanvasError(f"画布没有返回素材 ID，上传结果：{str(asset)[:200]}")
+
+        local_size = path.stat().st_size
+        if asset.get("size") is not None and int(asset["size"]) != local_size:
+            raise RuleViolation(
+                f"文件传进画布后大小不一样（本地 {local_size} 字节，画布里 {asset['size']} 字节），已停止，没有放节点。"
+            )
+
+        graph = self._graph(proj["id"])
+        node_type = "image-asset" if kind == "image" else "video-asset"
+        same = [n for n in graph.get("nodes") or [] if n.get("type") == node_type and (n.get("data") or {}).get("assetId") == asset_id]
+        if same and not allow_duplicate:
+            return {
+                "新建节点": None,
+                "画布上已有": [f"{g.label_of(n)}（{n['id']}）" for n in same],
+                "说明": "同一个文件画布上已经有节点了，可以直接用。确实要再放一个，带上 allow_duplicate=true。",
+            }
+
+        asset, waited = self._wait_local_asset(proj["id"], asset)
+        status = asset.get("status")
+        if status == "failed":
+            raise CanvasError(f"画布处理这个文件失败了（素材 ID {asset_id}）：{asset.get('error') or '画布没有给出原因'}")
+        if status not in (None, "ready"):
+            raise CanvasError(
+                f"文件已传进画布（素材 ID {asset_id}），但等了 {waited:.0f} 秒画布还在处理（{status}），先没放节点。"
+                "稍后再调一次 upload_local_asset 传同一个文件即可（画布会认出是同一个文件，不会重复占空间）。"
+            )
+
+        rects = g.occupied_rects(graph.get("nodes") or [])
+        x, y = g.find_free_spot(rects, width=g.NODE_W, height=g.NODE_H)
+        data = {
+            "assetId": asset_id,
+            "status": "ready",
+            "filename": asset.get("filename"),
+            "originalName": display,
+            # thumbnailPath 是画布的运行时字段，增量接口不让写（RUNTIME_FIELD_READ_ONLY），由画布自己补。
+        }
+        for key in ("width", "height"):
+            if asset.get(key) is not None:
+                data[key] = asset[key]
+        node = {
+            "id": g.new_id(node_type),
+            "type": node_type,
+            "ui": {"x": x, "y": y, "width": g.NODE_W, "height": g.NODE_H, "nodeType": node_type, "label": display},
+            "data": data,
+        }
+        self._add_items(proj["id"], [node], [])
+        mismatches = self._verify_nodes(proj["id"], [node], [])
+        if not self.brand["needs_certification"]:
+            hosting = (
+                "文件存在本机画布的项目文件夹里；提交生成时，画布会把它传到公共图床（优先图床小镇 imgbed，失败再换 tflink 等）交给 Seedance，"
+                "那时文件在公网上，拿到链接的人都能打开。"
+            )
+        else:
+            hosting = "文件存在本机画布的项目文件夹里；提交生成时画布再上传（先玄上自己的存储，失败才走公共图床）。"
+        result: dict[str, Any] = {
+            "节点ID": node["id"],
+            "节点名": display,
+            "类型": "图片" if kind == "image" else "视频",
+            "素材ID": asset_id,
+            "传输文件名": name,
+            "认证": "不用认证，可以直接接进视频节点",
+            "存储去向": hosting,
+            "上传核对": f"一致（{local_size} 字节）" if asset.get("size") is not None else "画布没返回文件大小，没能核对",
+            "保存核对": "一致" if not mismatches else mismatches,
+        }
+        if oversized:
+            result["注意"] = [
+                f"原图 {oversized[0]}×{oversized[1]}，长边超过 {MAX_IMAGE_SIDE}px；提交生成时画布会自动缩到长边 5800px（JPEG）再交给 Seedance，画布里存的还是原图。"
+            ]
+        result["下一步"] = "用 create_video_node 把它接进视频节点（填节点名或节点 ID）。"
+        return result
+
+    def _wait_local_asset(self, project_id: str, asset: dict[str, Any]) -> tuple[dict[str, Any], float]:
+        """画布收到文件后先是 processing（做缩略图、读尺寸），变成 ready 再放节点。"""
+        start = time.monotonic()
+        while asset.get("status") not in (None, "ready", "failed"):
+            if time.monotonic() - start + self.settings.certify_poll_seconds > self.settings.certify_wait_seconds:
+                break
+            time.sleep(self.settings.certify_poll_seconds)
+            try:
+                asset = self.connect().get(f"/api/projects/{project_id}/assets/{asset['id']}")
+            except CanvasError:
+                pass
+        return asset, time.monotonic() - start
+
     def _add_items(self, project_id: str, nodes: list[dict[str, Any]], edges: list[dict[str, Any]]) -> None:
         """规则 1：只用增量接口加节点和连线，不整张图保存，也不删任何东西。"""
         self.connect().post(
@@ -965,7 +1118,7 @@ class CanvasService:
             if data.get("status") != "Active":
                 return f"{label}还没认证完成（{CERT_STATUS.get(data.get('status'), data.get('status'))}）"
             return None
-        if kind == "video" and node_type == "video-asset":
+        if kind == "video" and node_type == "video-asset" and self.brand["needs_certification"]:
             return f"{label}是没认证的本地视频。参考视频要先用 upload_certified_video 上传认证，再用认证后的节点"
         if node_type.endswith("-asset"):
             return None if data.get("status") in (None, "ready") else f"{label}的素材还没准备好"

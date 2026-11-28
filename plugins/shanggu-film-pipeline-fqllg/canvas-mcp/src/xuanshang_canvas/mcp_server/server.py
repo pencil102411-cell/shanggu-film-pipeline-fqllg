@@ -165,6 +165,19 @@ def add_certified_asset_node(
 
 
 @mcp.tool(annotations=WRITE)
+def upload_local_asset(
+    project: ProjectArg,
+    file_path: Annotated[str, Field(description="本地图片或参考视频的完整路径（图片 JPG/PNG/WEBP/BMP/GIF，视频 MP4/MOV），如 C:\\素材\\司徒陌-面部.png")],
+    display_name: Annotated[str | None, Field(description="画布节点上显示的名字，不填就用原文件名")] = None,
+    allow_duplicate: Annotated[bool, Field(description="同一个文件画布上已经有节点时，是否还要再放一个")] = False,
+) -> dict[str, Any]:
+    """不认证，把本地图片或参考视频按原文件放进画布项目，并在画布上放一个本地素材节点（自动找空位），之后可直接接进视频节点。
+    七色星沅画布的素材都用这个，不用认证分组；提交生成时画布会自己把文件传到公共图床交给 Seedance（结果「存储去向」里写明，要转告用户）。
+    玄上画布：本地图片也可以用它；本地参考视频仍要走 upload_certified_video 认证，这里会拒绝。"""
+    return _safe(lambda: service.upload_local_asset(project, file_path, display_name, allow_duplicate))
+
+
+@mcp.tool(annotations=WRITE)
 def create_video_node(
     project: ProjectArg,
     name: Annotated[str, Field(description="节点名字；和已有视频节点重名时自动加 -v2、-v3")],
@@ -174,7 +187,7 @@ def create_video_node(
     ] = None,
     video_nodes: Annotated[
         list[str] | None,
-        Field(description="按顺序排列的视频节点（节点名或 ID），第一个就是 (视频1)。可以是认证过的参考视频，也可以是画布上已生成的视频"),
+        Field(description="按顺序排列的视频节点（节点名或 ID），第一个就是 (视频1)。可以是认证过的参考视频、画布上已生成的视频；七色星沅还可以是 upload_local_asset 放的本地视频"),
     ] = None,
     duration: Annotated[int | None, Field(description="时长（秒）。Seedance 2.5 可选 4–30，-1 表示自动；不填用默认 5")] = None,
     ratio: Annotated[str | None, Field(description="画面比例：adaptive、21:9、16:9、4:3、1:1、3:4、9:16；不填用默认 21:9")] = None,
@@ -188,7 +201,7 @@ def create_video_node(
     web_search: Annotated[bool | None, Field(description="是否开联网搜索，默认关")] = None,
 ) -> dict[str, Any]:
     """新建 Seedance 视频生成节点并连好素材。会检查：引用格式（自动统一成画布的 (图片N) 写法）、引用编号和接入素材是否对得上、
-    素材是否已认证/已生成、参数是否合规，以及全文每一处素材编号是否都写成画布能识别的 (图片N)/(视频N)（漏括号、省略、范围写法都会拒绝并指出位置）。
+    素材是否可用（玄上的本地参考视频要已认证；七色星沅不用认证）、画布结果是否已生成、参数是否合规，以及全文每一处素材编号是否都写成画布能识别的 (图片N)/(视频N)（漏括号、省略、范围写法都会拒绝并指出位置）。
     建完分别报告「保存核对」和「引用格式检查」。不会提交生成。"""
     overrides = {
         "duration": duration,
